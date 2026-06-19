@@ -135,8 +135,21 @@ const IconLocation = () => (
   </svg>
 );
 
+/* ── Mobile detector — only true at widths <= 900px. Desktop is always false here. ───── */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= 900 : false
+  );
+  useEffect(() => {
+    function check() { setIsMobile(window.innerWidth <= 900); }
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
 /* ── 3D Skill Sphere — slower, sharper ───────────────────────────────── */
-function SkillSphere({ skills }) {
+function SkillSphere({ skills, size = 300 }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -147,7 +160,7 @@ function SkillSphere({ skills }) {
 
     // Use device pixel ratio for crisp rendering
     const dpr = window.devicePixelRatio || 1;
-    const SIZE = 300;
+    const SIZE = size;
     canvas.width = SIZE * dpr;
     canvas.height = SIZE * dpr;
     canvas.style.width = SIZE + "px";
@@ -281,7 +294,7 @@ function SkillSphere({ skills }) {
 
     draw();
     return () => cancelAnimationFrame(animRef.current);
-  }, [skills]);
+  }, [skills, size]);
 
   return (
     <canvas
@@ -339,6 +352,7 @@ function Card({ children, style={}, from="bottom", delay=0, show }) {
 
 /* ── Main Portfolio ──────────────────────────────────────────────────── */
 export default function Portfolio() {
+  const isMobile = useIsMobile();
   const [loaded, setLoaded] = useState(false);
   const [show, setShow] = useState(false);
   const [showHero, setShowHero] = useState(false);
@@ -377,6 +391,7 @@ export default function Portfolio() {
     if (!loaded) return;
     let touchStartY = null;
     function onWheel(e) {
+      if (isMobile) return; // mobile scrolls naturally inside sections, no swipe-to-navigate
       if (showContact || showContactModal || showProjects) return;
       if (Math.abs(e.deltaY) < 30) return;
       if (e.deltaY > 0 && !showAbout) openAbout();
@@ -384,6 +399,7 @@ export default function Portfolio() {
     }
     function onTouchStart(e) { touchStartY = e.touches?.[0]?.clientY; }
     function onTouchEnd(e) {
+      if (isMobile) return; // mobile scrolls naturally inside sections, no swipe-to-navigate
       if (touchStartY == null) return;
       const dy = touchStartY - (e.changedTouches?.[0]?.clientY);
       if (dy > 60 && !showAbout && !showContact && !showContactModal && !showProjects) openAbout();
@@ -398,7 +414,7 @@ export default function Portfolio() {
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
     };
-  }, [loaded, showAbout, showContact, showContactModal, showProjects]);
+  }, [loaded, showAbout, showContact, showContactModal, showProjects, isMobile]);
 
   function navigateProject(dir) {
     if (projectAnimating) return;
@@ -449,27 +465,31 @@ export default function Portfolio() {
         .contact-panel::-webkit-scrollbar-track { background:transparent; }
         .contact-panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:99px; }
         .contact-panel { scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.15) transparent; }
-        @media (max-width:900px) { .main-grid { grid-template-columns:1fr !important; } }
+        /* Mobile-only rules. These NEVER apply above 900px, so desktop is untouched. */
+        @media (max-width:900px) {
+          .main-grid { grid-template-columns:1fr !important; }
+          html, body { overflow:auto !important; }
+        }
       `}</style>
 
       {!loaded && <Loader onDone={handleDone}/>}
 
-      <div style={{ height:"100vh", width:"100%", display:"flex", flexDirection:"column", padding:"32px", background:C.bg, fontFamily:"'DM Sans',sans-serif", opacity:loaded?1:0, transition:"opacity 0.75s ease", gap:8, overflow:"hidden", minWidth:0, position:"relative" }}>
+      <div style={{ height:isMobile?"100dvh":"100vh", width:"100%", display:"flex", flexDirection:"column", padding:isMobile?"16px":"32px", background:C.bg, fontFamily:"'DM Sans',sans-serif", opacity:loaded?1:0, transition:"opacity 0.75s ease", gap:8, overflow:"hidden", minWidth:0, position:"relative" }}>
 
         {/* NAV */}
         <nav style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"4px 4px", flexShrink:0, opacity:show?1:0, transform:show?"translateY(0)":"translateY(-20px)", transition:"opacity 0.85s ease 0.1s, transform 0.85s ease 0.1s" }}>
-          <span style={{ color:C.cream, textTransform:"uppercase", fontSize:"0.88rem", letterSpacing:"0.06em" }}>
+          <span style={{ color:C.cream, textTransform:"uppercase", fontSize:isMobile?"0.74rem":"0.88rem", letterSpacing:"0.06em" }}>
             <span style={{ fontWeight:300 }}>{CONFIG.name.first} </span>
             <span style={{ fontWeight:500 }}>{CONFIG.name.last}</span>
           </span>
-          <ul style={{ display:"flex", gap:32, listStyle:"none" }}>
+          <ul style={{ display:"flex", gap:isMobile?14:32, listStyle:"none" }}>
             <li>
-              <a href="#" style={{ color:C.cream, fontSize:"0.7rem", letterSpacing:"0.13em", textTransform:"uppercase", opacity:0.65, cursor:"pointer" }}
+              <a href="#" style={{ color:C.cream, fontSize:isMobile?"0.62rem":"0.7rem", letterSpacing:"0.13em", textTransform:"uppercase", opacity:0.65, cursor:"pointer" }}
                 onClick={e=>{e.preventDefault();goHome();}} onMouseEnter={e=>e.target.style.opacity=1} onMouseLeave={e=>e.target.style.opacity=0.65}>Home</a>
             </li>
             {CONFIG.nav.map(n=>(
               <li key={n}>
-                <a href="#" style={{ color:C.cream, fontSize:"0.7rem", letterSpacing:"0.13em", textTransform:"uppercase", opacity:0.65, cursor:"pointer" }}
+                <a href="#" style={{ color:C.cream, fontSize:isMobile?"0.62rem":"0.7rem", letterSpacing:"0.13em", textTransform:"uppercase", opacity:0.65, cursor:"pointer" }}
                   onClick={e=>{e.preventDefault();const t=n.toLowerCase();if(t==="contact")openContact();else if(t==="about")openAbout();else openProjects();}}
                   onMouseEnter={e=>e.target.style.opacity=1} onMouseLeave={e=>e.target.style.opacity=0.65}>{n}</a>
               </li>
@@ -484,31 +504,31 @@ export default function Portfolio() {
           <div style={{ position:"relative", overflow:"hidden", display:"flex", flexDirection:"column", gap:8, minHeight:0, height:"100%" }}>
 
             {/* HOME LAYER */}
-            <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", gap:8, transform:showAbout?"translateY(-110%)":showProjects?"translateX(-110%)":"translateY(0)", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)" }}>
-              <Card from="left" delay={0.12} show={showHero} style={{ flex:"1 1 0", minHeight:0, overflow:"hidden", transform:showContact?"translateX(-18px) scale(0.98)":"none", opacity:showContact?0.88:1 }}>
-                <div style={{ background:C.cream, height:"100%", padding:"48px 64px 36px", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"flex-start", position:"relative", overflow:"hidden" }}>
+            <div className={isMobile?"scroll-hidden":""} style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", gap:8, transform:showAbout?"translateY(-110%)":showProjects?"translateX(-110%)":"translateY(0)", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)", overflowY:isMobile?"auto":"hidden" }}>
+              <Card from="left" delay={0.12} show={showHero} style={{ flex:isMobile?"0 0 auto":"1 1 0", minHeight:isMobile?220:0, overflow:"hidden", transform:showContact?"translateX(-18px) scale(0.98)":"none", opacity:showContact?0.88:1 }}>
+                <div style={{ background:C.cream, height:"100%", padding:isMobile?"28px 22px 22px":"48px 64px 36px", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"flex-start", position:"relative", overflow:"hidden" }}>
                   <span style={{ position:"absolute", top:16, right:18, fontSize:"0.55rem", letterSpacing:"0.22em", textTransform:"uppercase", color:C.olive, opacity:0.35 }}>Work</span>
                   <h1 style={{ fontFamily:"'Playfair Display',serif", lineHeight:1.05, color:C.textDark, maxWidth:"64ch", margin:0 }}>
                     {CONFIG.headline.map((line,i)=>(
-                      <span key={i} style={{ display:"block", fontSize:i===CONFIG.italicLine?"clamp(1.9rem,3.2vw,3.6rem)":"clamp(2rem,3.6vw,3.8rem)", fontWeight:i===CONFIG.italicLine?400:900, fontStyle:i===CONFIG.italicLine?"italic":"normal", marginBottom:i===CONFIG.italicLine?"6px":"0" }}>{line}</span>
+                      <span key={i} style={{ display:"block", fontSize:i===CONFIG.italicLine?(isMobile?"1.4rem":"clamp(1.9rem,3.2vw,3.6rem)"):(isMobile?"1.5rem":"clamp(2rem,3.6vw,3.8rem)"), fontWeight:i===CONFIG.italicLine?400:900, fontStyle:i===CONFIG.italicLine?"italic":"normal", marginBottom:i===CONFIG.italicLine?"6px":"0" }}>{line}</span>
                     ))}
                   </h1>
                 </div>
               </Card>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, flexShrink:0, height:200 }}>
+              <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:8, flexShrink:0, height:isMobile?"auto":200 }}>
                 <Card from="bottom" delay={0.3} show={showContactCard} style={{ height:"100%", transform:showContact?"translateX(-14px) scale(0.98)":"none", opacity:showContact?0.94:1 }}>
-                  <div style={{ background:C.olive, padding:"20px 24px", display:"flex", flexDirection:"column", justifyContent:"space-between", height:"100%", cursor:"pointer" }}
+                  <div style={{ background:C.olive, padding:isMobile?"16px 18px":"20px 24px", display:"flex", flexDirection:"column", justifyContent:"space-between", height:"100%", cursor:"pointer", minHeight:isMobile?110:"auto" }}
                     onMouseEnter={e=>e.currentTarget.querySelector(".cbig").style.letterSpacing="0.02em"}
                     onMouseLeave={e=>e.currentTarget.querySelector(".cbig").style.letterSpacing="normal"}>
                     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
                       <p style={{ fontSize:"0.75rem", color:C.cream, opacity:0.7, lineHeight:1.55 }}>Have some<br/>questions?</p>
                       <span style={{ color:C.cream, fontSize:"1.3rem", opacity:0.85, cursor:"pointer" }} onClick={openContact}>↗</span>
                     </div>
-                    <p className="cbig" style={{ fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:"clamp(1.5rem,2.2vw,2.4rem)", color:C.cream, lineHeight:1.1, transition:"letter-spacing 0.3s ease" }}>Contact me</p>
+                    <p className="cbig" style={{ fontFamily:"'Playfair Display',serif", fontWeight:700, fontSize:isMobile?"1.5rem":"clamp(1.5rem,2.2vw,2.4rem)", color:C.cream, lineHeight:1.1, transition:"letter-spacing 0.3s ease" }}>Contact me</p>
                   </div>
                 </Card>
                 <Card from="right" delay={0.24} show={showBioCard} style={{ height:"100%", transform:showContact?"translateX(-14px) scale(0.98)":"none", opacity:showContact?0.94:1 }}>
-                  <div style={{ background:C.cream, padding:"20px 24px", display:"flex", flexDirection:"column", justifyContent:"space-between", height:"100%" }}>
+                  <div style={{ background:C.cream, padding:isMobile?"16px 18px":"20px 24px", display:"flex", flexDirection:"column", justifyContent:"space-between", height:"100%", minHeight:isMobile?150:"auto" }}>
                     <svg viewBox="0 0 60 60" fill="none" style={{ width:32, height:32, opacity:0.28 }}>
                       {[28,20,12,5].map(r=>(<circle key={r} cx="30" cy="30" r={r} stroke={C.olive} strokeWidth="0.8"/>))}
                       <circle cx="30" cy="30" r="2" fill={C.olive}/>
@@ -517,35 +537,36 @@ export default function Portfolio() {
                   </div>
                 </Card>
               </div>
+              {isMobile && <div style={{ height:8, flexShrink:0 }}/>}
             </div>
 
             {/* ABOUT LAYER */}
             <div style={{ position:"absolute", inset:0, display:"flex", flexDirection:"column", gap:8, transform:showAbout?"translateY(0)":"translateY(110%)", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)", willChange:"transform" }}>
               <Card from="bottom" delay={0.06} show={showAbout} style={{ flex:1, minHeight:0 }}>
-                <div className="scroll-hidden" style={{ background:C.cream, height:"100%", padding:"36px 44px 36px", display:"flex", flexDirection:"column", gap:0, minHeight:0, overflowY:"auto" }}>
+                <div className="scroll-hidden" style={{ background:C.cream, height:"100%", padding:isMobile?"26px 20px 26px":"36px 44px 36px", display:"flex", flexDirection:"column", gap:0, minHeight:0, overflowY:"auto" }}>
 
                   {/* eyebrow + headline */}
                   <p style={{ textTransform:"uppercase", letterSpacing:"0.22em", color:C.olive, fontSize:"0.62rem", margin:"0 0 10px", fontWeight:600 }}>Know me</p>
-                  <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.6rem,2.6vw,2.4rem)", margin:"0 0 2px", lineHeight:1.06, color:C.textDark, fontWeight:900 }}>Drawn to ideas, systems,</h2>
-                  <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.6rem,2.6vw,2.4rem)", margin:"0 0 20px", lineHeight:1.06, color:C.textDark, fontWeight:400, fontStyle:"italic" }}>and figuring things out.</h2>
+                  <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.5rem":"clamp(1.6rem,2.6vw,2.4rem)", margin:"0 0 2px", lineHeight:1.06, color:C.textDark, fontWeight:900 }}>Drawn to ideas, systems,</h2>
+                  <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.5rem":"clamp(1.6rem,2.6vw,2.4rem)", margin:"0 0 20px", lineHeight:1.06, color:C.textDark, fontWeight:400, fontStyle:"italic" }}>and figuring things out.</h2>
 
                   {/* stat cards */}
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:18 }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:isMobile?6:10, marginBottom:18 }}>
                     {[
                       { num:"3+", label:"Projects Shipped" },
                       { num:"2",  label:"Internships" },
                       { num:"VIT", label:"B.Tech CSE" },
                     ].map(({ num, label }) => (
-                      <div key={label} style={{ background:"rgba(0,0,0,0.05)", borderRadius:10, padding:"12px 14px" }}>
-                        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:"1.5rem", fontWeight:900, color:C.textDark, margin:0, lineHeight:1 }}>{num}</p>
-                        <p style={{ fontSize:"0.6rem", letterSpacing:"0.1em", textTransform:"uppercase", color:C.olive, margin:"5px 0 0" }}>{label}</p>
+                      <div key={label} style={{ background:"rgba(0,0,0,0.05)", borderRadius:10, padding:isMobile?"10px 8px":"12px 14px" }}>
+                        <p style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.2rem":"1.5rem", fontWeight:900, color:C.textDark, margin:0, lineHeight:1 }}>{num}</p>
+                        <p style={{ fontSize:isMobile?"0.52rem":"0.6rem", letterSpacing:"0.1em", textTransform:"uppercase", color:C.olive, margin:"5px 0 0" }}>{label}</p>
                       </div>
                     ))}
                   </div>
 
                   {/* quote */}
-                  <div style={{ background:"rgba(0,0,0,0.04)", borderRadius:10, padding:"14px 18px", marginBottom:16, borderLeft:`3px solid ${C.olive}` }}>
-                    <p style={{ fontFamily:"'Playfair Display',serif", fontSize:"0.9rem", fontStyle:"italic", color:C.textDark, lineHeight:1.7, opacity:0.78, margin:0 }}>
+                  <div style={{ background:"rgba(0,0,0,0.04)", borderRadius:10, padding:isMobile?"12px 14px":"14px 18px", marginBottom:16, borderLeft:`3px solid ${C.olive}` }}>
+                    <p style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"0.82rem":"0.9rem", fontStyle:"italic", color:C.textDark, lineHeight:1.7, opacity:0.78, margin:0 }}>
                       "I'm Preksha — a CS undergrad at VIT who's into AI, research, and building things that actually work. Most of my time goes into learning deeply, building thoughtfully, and being curious enough to try things I haven't done before."
                     </p>
                   </div>
@@ -553,20 +574,20 @@ export default function Portfolio() {
                   {/* interest tags */}
                   <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:18 }}>
                     {["Artificial Intelligence","Data Science","Web Development","Computer Vision","Research","Technical Writing"].map(t => (
-                      <span key={t} style={{ background:"rgba(0,0,0,0.07)", borderRadius:99, padding:"4px 13px", fontSize:"0.68rem", color:C.textDark, letterSpacing:"0.03em" }}>{t}</span>
+                      <span key={t} style={{ background:"rgba(0,0,0,0.07)", borderRadius:99, padding:"4px 13px", fontSize:isMobile?"0.62rem":"0.68rem", color:C.textDark, letterSpacing:"0.03em" }}>{t}</span>
                     ))}
                   </div>
 
                   {/* divider */}
                   <div style={{ height:1, background:"rgba(0,0,0,0.08)", margin:"2px 0 18px" }}/>
 
-                  {/* experience + education two-col */}
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:28, flex:1 }}>
+                  {/* experience + education — stacked on mobile, side-by-side on desktop */}
+                  <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:isMobile?22:28, flex:1 }}>
                     {/* experience */}
                     <div>
                       <p style={{ fontSize:"0.58rem", letterSpacing:"0.22em", textTransform:"uppercase", color:C.olive, fontWeight:700, margin:"0 0 12px" }}>Experience</p>
                       {CONFIG.experience.map((ex, i) => (
-                        <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:12, padding:"11px 0", borderBottom:"1px solid rgba(0,0,0,0.07)" }}>
+                        <div key={i} style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr auto", gap:isMobile?4:12, padding:"11px 0", borderBottom:"1px solid rgba(0,0,0,0.07)" }}>
                           <div>
                             <p style={{ margin:0, fontSize:"0.84rem", fontWeight:700, color:C.textDark, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
                               {ex.role}
@@ -577,8 +598,8 @@ export default function Portfolio() {
                             <p style={{ margin:"2px 0 5px", fontSize:"0.72rem", color:C.olive, fontWeight:500 }}>{ex.org}</p>
                             <p style={{ margin:0, fontSize:"0.72rem", lineHeight:1.65, color:C.textDark, opacity:0.58 }}>{ex.desc}</p>
                           </div>
-                          <p style={{ margin:0, fontSize:"0.65rem", color:C.oliveMid, whiteSpace:"nowrap", textAlign:"right", paddingTop:2, lineHeight:1.5 }}>
-                            {ex.period.split(" — ").map((s,j) => <span key={j} style={{ display:"block" }}>{s}</span>)}
+                          <p style={{ margin:0, fontSize:"0.65rem", color:C.oliveMid, whiteSpace:isMobile?"normal":"nowrap", textAlign:isMobile?"left":"right", paddingTop:2, lineHeight:1.5 }}>
+                            {ex.period.split(" — ").map((s,j) => <span key={j} style={{ display:isMobile?"inline":"block", marginRight:isMobile?6:0 }}>{s}</span>)}
                           </p>
                         </div>
                       ))}
@@ -588,12 +609,12 @@ export default function Portfolio() {
                     <div>
                       <p style={{ fontSize:"0.58rem", letterSpacing:"0.22em", textTransform:"uppercase", color:C.olive, fontWeight:700, margin:"0 0 12px" }}>Education</p>
                       {CONFIG.education.map((ed, i) => (
-                        <div key={i} style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:12, padding:"11px 0", borderBottom:"1px solid rgba(0,0,0,0.07)" }}>
+                        <div key={i} style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr auto", gap:isMobile?4:12, padding:"11px 0", borderBottom:"1px solid rgba(0,0,0,0.07)" }}>
                           <div>
                             <p style={{ margin:0, fontSize:"0.84rem", fontWeight:700, color:C.textDark }}>{ed.institution}</p>
                             <p style={{ margin:"3px 0 0", fontSize:"0.72rem", color:C.olive, opacity:0.85 }}>{ed.detail}</p>
                           </div>
-                          <p style={{ margin:0, fontSize:"0.65rem", color:C.oliveMid, whiteSpace:"nowrap", textAlign:"right", paddingTop:2 }}>{ed.period}</p>
+                          <p style={{ margin:0, fontSize:"0.65rem", color:C.oliveMid, whiteSpace:"nowrap", textAlign:isMobile?"left":"right", paddingTop:2 }}>{ed.period}</p>
                         </div>
                       ))}
                     </div>
@@ -606,16 +627,16 @@ export default function Portfolio() {
 
             {/* PROJECTS LAYER */}
             <div style={{ position:"absolute", inset:0, transform:showProjects?"translateX(0)":"translateX(110%)", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)", pointerEvents:showProjects?"auto":"none", display:"flex" }}>
-              <div style={{ width:"100%", height:"100%", background:C.bg, display:"flex", flexDirection:"row", borderRadius:24, overflow:"hidden", border:"1px solid rgba(255,255,255,0.06)" }}>
+              <div className={isMobile?"scroll-hidden":""} style={{ width:"100%", height:"100%", background:C.bg, display:"flex", flexDirection:isMobile?"column":"row", borderRadius:24, overflow:isMobile?"auto":"hidden", border:"1px solid rgba(255,255,255,0.06)" }}>
 
                 {/* project info panel */}
-                <div style={{ flex:1, padding:"44px 52px 36px", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+                <div style={{ flex:1, padding:isMobile?"28px 22px 24px":"44px 52px 36px", display:"flex", flexDirection:"column", overflow:isMobile?"visible":"hidden" }}>
 
                   {/* header */}
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:24, flexShrink:0 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:isMobile?16:24, flexShrink:0 }}>
                     <div>
                       <p style={{ textTransform:"uppercase", letterSpacing:"0.18em", color:C.oliveMid, fontSize:"0.65rem", margin:0, fontWeight:500 }}>Selected work</p>
-                      <h3 style={{ margin:"8px 0 0", fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.6rem,2.4vw,2rem)", color:C.cream, fontWeight:700 }}>Projects</h3>
+                      <h3 style={{ margin:"8px 0 0", fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.4rem":"clamp(1.6rem,2.4vw,2rem)", color:C.cream, fontWeight:700 }}>Projects</h3>
                     </div>
                     <div style={{ textAlign:"right" }}>
                       <p style={{ color:C.oliveMid, fontSize:"0.78rem", fontWeight:500, letterSpacing:"0.08em", margin:0 }}>
@@ -626,7 +647,7 @@ export default function Portfolio() {
                   </div>
 
                   {/* animated content */}
-                  <div style={{ flex:1, display:"flex", alignItems:"center", overflow:"hidden", minHeight:0 }} key={`${projectIndex}-${projectAnimating}`}>
+                  <div style={{ flex:isMobile?"none":1, display:"flex", alignItems:"center", overflow:"hidden", minHeight:0 }} key={`${projectIndex}-${projectAnimating}`}>
                     <div style={{
                       width:"100%",
                       display:"flex", flexDirection:"column", gap:14,
@@ -638,13 +659,13 @@ export default function Portfolio() {
                         {proj.tag}
                       </span>
 
-                      <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.6rem,2.8vw,2.5rem)", margin:0, lineHeight:1.08, color:C.cream, fontWeight:900 }}>
+                      <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.5rem":"clamp(1.6rem,2.8vw,2.5rem)", margin:0, lineHeight:1.08, color:C.cream, fontWeight:900 }}>
                         {proj.title}
                       </h2>
 
                       <div style={{ height:1, background:"rgba(255,255,255,0.07)", flexShrink:0 }}/>
 
-                      <p style={{ color:C.cream, opacity:0.52, lineHeight:1.85, fontSize:"0.86rem", margin:0 }}>
+                      <p style={{ color:C.cream, opacity:0.52, lineHeight:1.85, fontSize:isMobile?"0.8rem":"0.86rem", margin:0 }}>
                         {proj.desc}
                       </p>
 
@@ -684,9 +705,9 @@ export default function Portfolio() {
                 </div>
 
                 {/* skill sphere panel */}
-                <div key={`sphere-${projectIndex}`} style={{ width:320, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:14, borderLeft:"1px solid rgba(255,255,255,0.05)", background:"rgba(255,255,255,0.012)" }}>
+                <div key={`sphere-${projectIndex}`} style={{ width:isMobile?"100%":320, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:14, borderLeft:isMobile?"none":"1px solid rgba(255,255,255,0.05)", borderTop:isMobile?"1px solid rgba(255,255,255,0.05)":"none", background:"rgba(255,255,255,0.012)", padding:isMobile?"24px 0 32px":0 }}>
                   <div style={{ animation:"sphereFadeIn 0.65s cubic-bezier(.22,1,.36,1) forwards", opacity:0 }}>
-                    <SkillSphere skills={proj.skills} />
+                    <SkillSphere skills={proj.skills} size={isMobile?220:300} />
                   </div>
                   <p style={{ fontSize:"0.58rem", letterSpacing:"0.22em", textTransform:"uppercase", color:C.oliveMid, opacity:0.4, margin:0 }}>Tech Stack</p>
                 </div>
@@ -696,32 +717,50 @@ export default function Portfolio() {
 
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, position:"relative", transform:showContact?"translateX(-18px)":showProjects?"translateX(110%)":"none", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)" }}>
-            <Card from="top" delay={0.18} show={showPhotoCard} style={{ flex:1, minHeight:0 }}>
-              <div style={{ background:C.olive, height:"100%" }}>
-                {CONFIG.photoSrc
-                  ? <img src={CONFIG.photoSrc} alt="Profile" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
-                  : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", color:C.cream, opacity:0.25, fontSize:"0.72rem", letterSpacing:"0.12em", textTransform:"uppercase" }}>Your Photo</div>
-                }
-              </div>
-            </Card>
-            <Card from="left" delay={0.36} show={showSocialBar} style={{ flexShrink:0 }}>
-              <div style={{ background:C.oliveMid, height:48, display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 16px" }}>
-                {[
-                  { label:"Instagram", href:CONFIG.instagram },
-                  { label:"GitHub",    href:CONFIG.github },
-                  { label:"LinkedIn",  href:CONFIG.linkedin },
-                ].map(({ label, href }) => (
-                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize:"0.62rem", letterSpacing:"0.14em", textTransform:"uppercase", color:C.textDark, opacity:0.6, transition:"opacity 0.2s" }}
-                    onMouseEnter={e=>e.target.style.opacity=1} onMouseLeave={e=>e.target.style.opacity=0.6}>
-                    {label}
-                  </a>
-                ))}
-              </div>
-            </Card>
-          </div>
+          {/* RIGHT COLUMN — hidden on mobile (folded into Home layer flow would duplicate; instead we hide it here since photo+social are decorative on small screens) */}
+          {!isMobile && (
+            <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, position:"relative", transform:showContact?"translateX(-18px)":showProjects?"translateX(110%)":"none", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)" }}>
+              <Card from="top" delay={0.18} show={showPhotoCard} style={{ flex:1, minHeight:0 }}>
+                <div style={{ background:C.olive, height:"100%" }}>
+                  {CONFIG.photoSrc
+                    ? <img src={CONFIG.photoSrc} alt="Profile" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+                    : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center", color:C.cream, opacity:0.25, fontSize:"0.72rem", letterSpacing:"0.12em", textTransform:"uppercase" }}>Your Photo</div>
+                  }
+                </div>
+              </Card>
+              <Card from="left" delay={0.36} show={showSocialBar} style={{ flexShrink:0 }}>
+                <div style={{ background:C.oliveMid, height:48, display:"flex", alignItems:"center", justifyContent:"space-around", padding:"0 16px" }}>
+                  {[
+                    { label:"Instagram", href:CONFIG.instagram },
+                    { label:"GitHub",    href:CONFIG.github },
+                    { label:"LinkedIn",  href:CONFIG.linkedin },
+                  ].map(({ label, href }) => (
+                    <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize:"0.62rem", letterSpacing:"0.14em", textTransform:"uppercase", color:C.textDark, opacity:0.6, transition:"opacity 0.2s" }}
+                      onMouseEnter={e=>e.target.style.opacity=1} onMouseLeave={e=>e.target.style.opacity=0.6}>
+                      {label}
+                    </a>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* MOBILE: compact social bar shown under Home content instead of full right column */}
+          {isMobile && !showAbout && !showProjects && !showContact && (
+            <div style={{ position:"absolute", bottom:8, left:0, right:0, display:"flex", justifyContent:"center", gap:18, padding:"10px 0", background:"rgba(255,255,255,0.04)", borderRadius:12, zIndex:2 }}>
+              {[
+                { label:"Instagram", href:CONFIG.instagram },
+                { label:"GitHub",    href:CONFIG.github },
+                { label:"LinkedIn",  href:CONFIG.linkedin },
+              ].map(({ label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize:"0.6rem", letterSpacing:"0.12em", textTransform:"uppercase", color:C.cream, opacity:0.7 }}>
+                  {label}
+                </a>
+              ))}
+            </div>
+          )}
 
         </div>
 
@@ -730,9 +769,9 @@ export default function Portfolio() {
           <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.42)", zIndex:8, pointerEvents:showContactModal?"auto":"none", opacity:showContactModal?1:0, transition:"opacity 1.25s cubic-bezier(.22,1,.36,1)" }} />
         )}
         {showContact && (
-          <div style={{ position:"absolute", top:32, right:32, bottom:32, width:"40vw", maxWidth:"520px", background:"rgba(14,14,14,0.97)", borderRadius:28, padding:"36px 32px 32px", display:"flex", flexDirection:"column", zIndex:10, boxShadow:"0 28px 80px rgba(0,0,0,0.35)", border:"1px solid rgba(255,255,255,0.07)", opacity:showContactModal?1:0, transform:showContactModal?"translateY(0) scale(1)":"translateY(22px) scale(0.98)", transition:"opacity 1.25s cubic-bezier(.22,1,.36,1), transform 1.25s cubic-bezier(.22,1,.36,1)", overflowY:"auto", gap:0 }} className="contact-panel">
-            <button onClick={closeContact} style={{ position:"absolute", top:24, right:24, border:"none", background:"transparent", color:C.cream, fontSize:"1.5rem", cursor:"pointer" }}>↙</button>
-            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(1.8rem,2.8vw,2.4rem)", margin:0, color:C.cream }}>Contact me!</h2>
+          <div style={{ position:"absolute", top:isMobile?16:32, right:isMobile?16:32, left:isMobile?16:"auto", bottom:isMobile?16:32, width:isMobile?"auto":"40vw", maxWidth:isMobile?"none":"520px", background:"rgba(14,14,14,0.97)", borderRadius:isMobile?20:28, padding:isMobile?"28px 20px 24px":"36px 32px 32px", display:"flex", flexDirection:"column", zIndex:10, boxShadow:"0 28px 80px rgba(0,0,0,0.35)", border:"1px solid rgba(255,255,255,0.07)", opacity:showContactModal?1:0, transform:showContactModal?"translateY(0) scale(1)":"translateY(22px) scale(0.98)", transition:"opacity 1.25s cubic-bezier(.22,1,.36,1), transform 1.25s cubic-bezier(.22,1,.36,1)", overflowY:"auto", gap:0 }} className="contact-panel">
+            <button onClick={closeContact} style={{ position:"absolute", top:isMobile?16:24, right:isMobile?16:24, border:"none", background:"transparent", color:C.cream, fontSize:"1.5rem", cursor:"pointer" }}>↙</button>
+            <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.6rem":"clamp(1.8rem,2.8vw,2.4rem)", margin:0, color:C.cream }}>Contact me!</h2>
             <p style={{ marginTop:10, color:C.cream, opacity:0.5, fontSize:"0.82rem", lineHeight:1.7, fontStyle:"italic" }}>
               Whether it's a project, collaboration, an interesting conversation, or just a hello, my inbox is always open.
             </p>
