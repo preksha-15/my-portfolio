@@ -45,19 +45,30 @@ const CONFIG = {
       desc: "An AI-powered reading assistant designed to improve accessibility for visually impaired users. By combining Optical Character Recognition, automatic language detection, and text-to-speech synthesis, the system converts printed and handwritten text from images into natural speech, enabling users to access information quickly and independently.",
       skills: ["OCR", "TTS", "Python", "NLP", "LangDetect", "Accessibility"],
     },
+    {
+      id: 4,
+      title: "Low-Light Object Detection",
+      tag: "AI | Computer Vision | Deep Learning",
+      year: "2025",
+      link: "https://github.com/Sami0137/Low-Light-Object-Detection-using-Pix2Pix-and-Yolov8",
+      liveLink: null,
+      desc: "A two-stage computer vision pipeline that tackles object detection under poor lighting conditions. A Pix2Pix U-Net generator first enhances low-light images through image-to-image translation, producing well-illuminated output that is then fed into a YOLOv8 detector for accurate object localization and classification.",
+      skills: ["Pix2Pix", "YOLOv8", "PyTorch", "OpenCV", "U-Net", "Python"],
+    },
   ],
+  // CHANGE 3: Updated experience periods — Research Team ended June 2026, Plasser ended July 1 2026
   experience: [
     {
       role: "Summer Intern",
       org: "Plasser India Pvt. Ltd.",
-      period: "May 2026 — Present",
-      desc: "Currently working under the guidance of industry mentors while developing technical projects and gaining exposure to enterprise technologies. Includes specialized sessions on ISMS, ERP workflows, SAP fundamentals, and industry-scale operational practices.",
+      period: "May 2026 — July 2026",
+      desc: "Worked under the guidance of industry mentors developing technical projects and gaining exposure to enterprise technologies. Included specialized sessions on ISMS, ERP workflows, SAP fundamentals, and industry-scale operational practices.",
     },
     {
       role: "Research Team Core Member",
       org: "Microsoft Technical Club",
-      period: "June 2025 — Present",
-      desc: "Contributing to research-focused initiatives, exploring emerging technologies, and collaborating on projects that encourage technical curiosity and innovation.",
+      period: "June 2025 — June 2026",
+      desc: "Contributed to research-focused initiatives, explored emerging technologies, and collaborated on projects encouraging technical curiosity and innovation.",
     },
     {
       role: "Software Development Intern",
@@ -135,7 +146,6 @@ const IconLocation = () => (
   </svg>
 );
 
-/* ── Mobile detector — only true at widths <= 900px. Desktop is always false here. ───── */
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth <= 900 : false
@@ -148,7 +158,6 @@ function useIsMobile() {
   return isMobile;
 }
 
-/* ── 3D Skill Sphere — slower, sharper ───────────────────────────────── */
 function SkillSphere({ skills, size = 300 }) {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
@@ -158,7 +167,6 @@ function SkillSphere({ skills, size = 300 }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Use device pixel ratio for crisp rendering
     const dpr = window.devicePixelRatio || 1;
     const SIZE = size;
     canvas.width = SIZE * dpr;
@@ -185,7 +193,6 @@ function SkillSphere({ skills, size = 300 }) {
       };
     });
 
-    // Slower rotation speeds
     const rotY = 0.003;
     const rotX = 0.002;
 
@@ -212,7 +219,6 @@ function SkillSphere({ skills, size = 300 }) {
       ctx.clearRect(0, 0, SIZE, SIZE);
       rotatePoints();
 
-      // Orbit rings — clearly visible
       const rings = [
         { r: R * 0.52, alpha: 0.08 },
         { r: R * 0.76, alpha: 0.12 },
@@ -227,7 +233,6 @@ function SkillSphere({ skills, size = 300 }) {
         ctx.stroke();
       });
 
-      // Tilted elliptical ring
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(0.42);
@@ -241,7 +246,6 @@ function SkillSphere({ skills, size = 300 }) {
 
       const sorted = [...points].sort((a, b) => a.oz - b.oz);
 
-      // Connection lines
       ctx.save();
       for (let i = 0; i < sorted.length; i++) {
         for (let j = i + 1; j < sorted.length; j++) {
@@ -260,7 +264,6 @@ function SkillSphere({ skills, size = 300 }) {
       }
       ctx.restore();
 
-      // Dots + labels
       sorted.forEach(p => {
         const depth = (p.oz + 1) / 2;
         const px = cx + p.ox * R;
@@ -269,7 +272,6 @@ function SkillSphere({ skills, size = 300 }) {
         const alpha = 0.25 + depth * 0.75;
         const fontSize = Math.round(9 + depth * 5.5);
 
-        // Subtle glow ring for front-facing dots
         if (depth > 0.65) {
           ctx.beginPath();
           ctx.arc(px, py, dotR + 3.5, 0, Math.PI * 2);
@@ -312,7 +314,6 @@ function SkillSphere({ skills, size = 300 }) {
   );
 }
 
-/* ── Loader ──────────────────────────────────────────────────────────── */
 function Loader({ onDone }) {
   const phrase = "Hey, Welcome";
   useEffect(() => {
@@ -337,7 +338,6 @@ function Loader({ onDone }) {
   );
 }
 
-/* ── Card ────────────────────────────────────────────────────────────── */
 function Card({ children, style={}, from="bottom", delay=0, show }) {
   const origins = { left:"translateX(-65px)", right:"translateX(65px)", top:"translateY(-65px)", bottom:"translateY(65px)" };
   const styleCopy = { ...style };
@@ -350,7 +350,6 @@ function Card({ children, style={}, from="bottom", delay=0, show }) {
   );
 }
 
-/* ── Main Portfolio ──────────────────────────────────────────────────── */
 export default function Portfolio() {
   const isMobile = useIsMobile();
   const [loaded, setLoaded] = useState(false);
@@ -391,7 +390,7 @@ export default function Portfolio() {
     if (!loaded) return;
     let touchStartY = null;
     function onWheel(e) {
-      if (isMobile) return; // mobile scrolls naturally inside sections, no swipe-to-navigate
+      if (isMobile) return;
       if (showContact || showContactModal || showProjects) return;
       if (Math.abs(e.deltaY) < 30) return;
       if (e.deltaY > 0 && !showAbout) openAbout();
@@ -399,7 +398,7 @@ export default function Portfolio() {
     }
     function onTouchStart(e) { touchStartY = e.touches?.[0]?.clientY; }
     function onTouchEnd(e) {
-      if (isMobile) return; // mobile scrolls naturally inside sections, no swipe-to-navigate
+      if (isMobile) return;
       if (touchStartY == null) return;
       const dy = touchStartY - (e.changedTouches?.[0]?.clientY);
       if (dy > 60 && !showAbout && !showContact && !showContactModal && !showProjects) openAbout();
@@ -430,6 +429,9 @@ export default function Portfolio() {
   function openProjects() { setShowAbout(false); setShowContact(false); setShowContactModal(false); setShowProjects(true); }
   function closeContact() { setShowContactModal(false); setTimeout(() => setShowContact(false), 420); }
   function goHome()       { setShowAbout(false); setShowContact(false); setShowContactModal(false); setShowProjects(false); setProjectIndex(0); }
+
+  // CHANGE 1: clicking the overlay backdrop closes contact and goes home
+  function handleOverlayClick() { closeContact(); }
 
   const contactLinks = [
     { icon:<IconEmail />,     label:CONFIG.email,       href:`mailto:${CONFIG.email}`, note:"Email" },
@@ -465,7 +467,6 @@ export default function Portfolio() {
         .contact-panel::-webkit-scrollbar-track { background:transparent; }
         .contact-panel::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:99px; }
         .contact-panel { scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.15) transparent; }
-        /* Mobile-only rules. These NEVER apply above 900px, so desktop is untouched. */
         @media (max-width:900px) {
           .main-grid { grid-template-columns:1fr !important; }
           html, body { overflow:auto !important; }
@@ -545,15 +546,13 @@ export default function Portfolio() {
               <Card from="bottom" delay={0.06} show={showAbout} style={{ flex:1, minHeight:0 }}>
                 <div className="scroll-hidden" style={{ background:C.cream, height:"100%", padding:isMobile?"26px 20px 26px":"36px 44px 36px", display:"flex", flexDirection:"column", gap:0, minHeight:0, overflowY:"auto" }}>
 
-                  {/* eyebrow + headline */}
                   <p style={{ textTransform:"uppercase", letterSpacing:"0.22em", color:C.olive, fontSize:"0.62rem", margin:"0 0 10px", fontWeight:600 }}>Know me</p>
                   <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.5rem":"clamp(1.6rem,2.6vw,2.4rem)", margin:"0 0 2px", lineHeight:1.06, color:C.textDark, fontWeight:900 }}>Drawn to ideas, systems,</h2>
                   <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.5rem":"clamp(1.6rem,2.6vw,2.4rem)", margin:"0 0 20px", lineHeight:1.06, color:C.textDark, fontWeight:400, fontStyle:"italic" }}>and figuring things out.</h2>
 
-                  {/* stat cards */}
                   <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:isMobile?6:10, marginBottom:18 }}>
                     {[
-                      { num:"3+", label:"Projects Shipped" },
+                      { num:"4+", label:"Projects Shipped" },
                       { num:"2",  label:"Internships" },
                       { num:"VIT", label:"B.Tech CSE" },
                     ].map(({ num, label }) => (
@@ -564,24 +563,21 @@ export default function Portfolio() {
                     ))}
                   </div>
 
-                  {/* quote */}
                   <div style={{ background:"rgba(0,0,0,0.04)", borderRadius:10, padding:isMobile?"12px 14px":"14px 18px", marginBottom:16, borderLeft:`3px solid ${C.olive}` }}>
                     <p style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"0.82rem":"0.9rem", fontStyle:"italic", color:C.textDark, lineHeight:1.7, opacity:0.78, margin:0 }}>
                       "I'm Preksha — a CS undergrad at VIT who's into AI, research, and building things that actually work. Most of my time goes into learning deeply, building thoughtfully, and being curious enough to try things I haven't done before."
                     </p>
                   </div>
 
-                  {/* interest tags */}
+                  {/* CHANGE 4: "Web Development" → "AI Web Development" */}
                   <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:18 }}>
-                    {["Artificial Intelligence","Data Science","Web Development","Computer Vision","Research","Technical Writing"].map(t => (
+                    {["Artificial Intelligence","Data Science","AI Web Development","Computer Vision","Research","Technical Writing"].map(t => (
                       <span key={t} style={{ background:"rgba(0,0,0,0.07)", borderRadius:99, padding:"4px 13px", fontSize:isMobile?"0.62rem":"0.68rem", color:C.textDark, letterSpacing:"0.03em" }}>{t}</span>
                     ))}
                   </div>
 
-                  {/* divider */}
                   <div style={{ height:1, background:"rgba(0,0,0,0.08)", margin:"2px 0 18px" }}/>
 
-                  {/* experience + education — stacked on mobile, side-by-side on desktop */}
                   <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:isMobile?22:28, flex:1 }}>
                     {/* experience */}
                     <div>
@@ -591,9 +587,7 @@ export default function Portfolio() {
                           <div>
                             <p style={{ margin:0, fontSize:"0.84rem", fontWeight:700, color:C.textDark, display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
                               {ex.role}
-                              {ex.period.includes("Present") && (
-                                <span style={{ background:C.textDark, color:C.cream, fontSize:"0.52rem", letterSpacing:"0.08em", textTransform:"uppercase", padding:"2px 7px", borderRadius:99 }}>Now</span>
-                              )}
+                              {/* CHANGE 3: No "Now" badge since both roles are now completed */}
                             </p>
                             <p style={{ margin:"2px 0 5px", fontSize:"0.72rem", color:C.olive, fontWeight:500 }}>{ex.org}</p>
                             <p style={{ margin:0, fontSize:"0.72rem", lineHeight:1.65, color:C.textDark, opacity:0.58 }}>{ex.desc}</p>
@@ -629,10 +623,8 @@ export default function Portfolio() {
             <div style={{ position:"absolute", inset:0, transform:showProjects?"translateX(0)":"translateX(110%)", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)", pointerEvents:showProjects?"auto":"none", display:"flex" }}>
               <div className={isMobile?"scroll-hidden":""} style={{ width:"100%", height:"100%", background:C.bg, display:"flex", flexDirection:isMobile?"column":"row", borderRadius:24, overflow:isMobile?"auto":"hidden", border:"1px solid rgba(255,255,255,0.06)" }}>
 
-                {/* project info panel */}
                 <div style={{ flex:1, padding:isMobile?"28px 22px 24px":"44px 52px 36px", display:"flex", flexDirection:"column", overflow:isMobile?"visible":"hidden" }}>
 
-                  {/* header */}
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:isMobile?16:24, flexShrink:0 }}>
                     <div>
                       <p style={{ textTransform:"uppercase", letterSpacing:"0.18em", color:C.oliveMid, fontSize:"0.65rem", margin:0, fontWeight:500 }}>Selected work</p>
@@ -646,7 +638,6 @@ export default function Portfolio() {
                     </div>
                   </div>
 
-                  {/* animated content */}
                   <div style={{ flex:isMobile?"none":1, display:"flex", alignItems:"center", overflow:"hidden", minHeight:0 }} key={`${projectIndex}-${projectAnimating}`}>
                     <div style={{
                       width:"100%",
@@ -669,7 +660,6 @@ export default function Portfolio() {
                         {proj.desc}
                       </p>
 
-                      {/* Links row */}
                       <div style={{ display:"flex", alignItems:"center", gap:20, marginTop:4, flexWrap:"wrap" }}>
                         <a href={proj.link} target="_blank" rel="noopener noreferrer" className="proj-link"
                           style={{ color:C.oliveMid, fontWeight:700, display:"inline-flex", alignItems:"center", gap:6, fontSize:"0.82rem", opacity:0.75 }}>
@@ -690,7 +680,6 @@ export default function Portfolio() {
                     </div>
                   </div>
 
-                  {/* nav arrows */}
                   <div style={{ display:"flex", gap:12, alignItems:"center", flexShrink:0, marginTop:16 }}>
                     {[[-1,"↑"],[1,"↓"]].map(([dir,arrow])=>{
                       const disabled = (dir===-1&&projectIndex===0)||(dir===1&&projectIndex===CONFIG.projects.length-1);
@@ -704,7 +693,6 @@ export default function Portfolio() {
                   </div>
                 </div>
 
-                {/* skill sphere panel */}
                 <div key={`sphere-${projectIndex}`} style={{ width:isMobile?"100%":320, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:14, borderLeft:isMobile?"none":"1px solid rgba(255,255,255,0.05)", borderTop:isMobile?"1px solid rgba(255,255,255,0.05)":"none", background:"rgba(255,255,255,0.012)", padding:isMobile?"24px 0 32px":0 }}>
                   <div style={{ animation:"sphereFadeIn 0.65s cubic-bezier(.22,1,.36,1) forwards", opacity:0 }}>
                     <SkillSphere skills={proj.skills} size={isMobile?220:300} />
@@ -717,7 +705,7 @@ export default function Portfolio() {
 
           </div>
 
-          {/* RIGHT COLUMN — hidden on mobile (folded into Home layer flow would duplicate; instead we hide it here since photo+social are decorative on small screens) */}
+          {/* RIGHT COLUMN */}
           {!isMobile && (
             <div style={{ display:"flex", flexDirection:"column", gap:8, minHeight:0, position:"relative", transform:showContact?"translateX(-18px)":showProjects?"translateX(110%)":"none", transition:"transform 1.15s cubic-bezier(.22,1,.36,1)" }}>
               <Card from="top" delay={0.18} show={showPhotoCard} style={{ flex:1, minHeight:0 }}>
@@ -746,7 +734,6 @@ export default function Portfolio() {
             </div>
           )}
 
-          {/* MOBILE: compact social bar shown under Home content instead of full right column */}
           {isMobile && !showAbout && !showProjects && !showContact && (
             <div style={{ position:"absolute", bottom:8, left:0, right:0, display:"flex", justifyContent:"center", gap:18, padding:"10px 0", background:"rgba(255,255,255,0.04)", borderRadius:12, zIndex:2 }}>
               {[
@@ -764,12 +751,17 @@ export default function Portfolio() {
 
         </div>
 
-        {/* CONTACT OVERLAY */}
+        {/* CONTACT OVERLAY — CHANGE 1: clicking backdrop goes home */}
         {showContact && (
-          <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.42)", zIndex:8, pointerEvents:showContactModal?"auto":"none", opacity:showContactModal?1:0, transition:"opacity 1.25s cubic-bezier(.22,1,.36,1)" }} />
+          <div
+            onClick={handleOverlayClick}
+            style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.42)", zIndex:8, pointerEvents:showContactModal?"auto":"none", opacity:showContactModal?1:0, transition:"opacity 1.25s cubic-bezier(.22,1,.36,1)", cursor:"pointer" }}
+          />
         )}
         {showContact && (
-          <div style={{ position:"absolute", top:isMobile?16:32, right:isMobile?16:32, left:isMobile?16:"auto", bottom:isMobile?16:32, width:isMobile?"auto":"40vw", maxWidth:isMobile?"none":"520px", background:"rgba(14,14,14,0.97)", borderRadius:isMobile?20:28, padding:isMobile?"28px 20px 24px":"36px 32px 32px", display:"flex", flexDirection:"column", zIndex:10, boxShadow:"0 28px 80px rgba(0,0,0,0.35)", border:"1px solid rgba(255,255,255,0.07)", opacity:showContactModal?1:0, transform:showContactModal?"translateY(0) scale(1)":"translateY(22px) scale(0.98)", transition:"opacity 1.25s cubic-bezier(.22,1,.36,1), transform 1.25s cubic-bezier(.22,1,.36,1)", overflowY:"auto", gap:0 }} className="contact-panel">
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ position:"absolute", top:isMobile?16:32, right:isMobile?16:32, left:isMobile?16:"auto", bottom:isMobile?16:32, width:isMobile?"auto":"40vw", maxWidth:isMobile?"none":"520px", background:"rgba(14,14,14,0.97)", borderRadius:isMobile?20:28, padding:isMobile?"28px 20px 24px":"36px 32px 32px", display:"flex", flexDirection:"column", zIndex:10, boxShadow:"0 28px 80px rgba(0,0,0,0.35)", border:"1px solid rgba(255,255,255,0.07)", opacity:showContactModal?1:0, transform:showContactModal?"translateY(0) scale(1)":"translateY(22px) scale(0.98)", transition:"opacity 1.25s cubic-bezier(.22,1,.36,1), transform 1.25s cubic-bezier(.22,1,.36,1)", overflowY:"auto", gap:0 }} className="contact-panel">
             <button onClick={closeContact} style={{ position:"absolute", top:isMobile?16:24, right:isMobile?16:24, border:"none", background:"transparent", color:C.cream, fontSize:"1.5rem", cursor:"pointer" }}>↙</button>
             <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:isMobile?"1.6rem":"clamp(1.8rem,2.8vw,2.4rem)", margin:0, color:C.cream }}>Contact me!</h2>
             <p style={{ marginTop:10, color:C.cream, opacity:0.5, fontSize:"0.82rem", lineHeight:1.7, fontStyle:"italic" }}>
